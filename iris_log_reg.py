@@ -20,14 +20,15 @@ train_y = train.Species
 test_X = test[["Sepal Length", "Sepal Width", "Petal length", "Petal Width"]]
 test_y = test.Species
 
-model=svm.SVC()
+model=LogisticRegression(max_iter=500,
+                        fit_intercept=True)
 model.fit(train_X,train_y)
 prediction=model.predict(test_X)
 accuracy=metrics.accuracy_score(prediction,test_y)
 print(f"SVM model accuracy is {format(accuracy)}")
 
 # Save to file in the current working directory
-pkl_filename = "iris_svm.pkl"
+pkl_filename = "iris_log_reg.pkl"
 with open(pkl_filename, 'wb') as file:
     pickle.dump(model, file)
 

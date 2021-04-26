@@ -20,10 +20,10 @@ train_y = train.Species
 test_X = test[["Sepal Length", "Sepal Width", "Petal length", "Petal Width"]]
 test_y = test.Species
 
-model=svm.SVC()
-model.fit(train_X,train_y)
-prediction=model.predict(test_X)
-accuracy=metrics.accuracy_score(prediction,test_y)
+model = svm.SVC()
+model.fit(train_X, train_y)
+prediction = model.predict(test_X)
+accuracy = metrics.accuracy_score(prediction, test_y)
 print(f"SVM model accuracy is {format(accuracy)}")
 
 # Save to file in the current working directory
