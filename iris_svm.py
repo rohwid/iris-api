@@ -27,7 +27,7 @@ accuracy = metrics.accuracy_score(prediction, test_y)
 print(f"SVM model accuracy is {format(accuracy)}")
 
 # Save to file in the current working directory
-pkl_filename = "iris_svm.pkl"
+pkl_filename = "model/iris_svm.pkl"
 with open(pkl_filename, 'wb') as file:
     pickle.dump(model, file)
 
@@ -41,3 +41,6 @@ print(f"Test score: {format(100 * score)}")
 
 predict_Y = pickle_model.predict(test_X)
 print(f"The prdiction result: {predict_Y}")
+
+# Save testing to CSV
+#test_X.to_csv('data_testing/input_svm.csv', index=False)

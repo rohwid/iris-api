@@ -102,3 +102,6 @@ nccl_*
 
 # VSCode config
 .vscode/*
+
+# Custom
+*.csv
