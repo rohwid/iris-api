@@ -28,7 +28,7 @@ accuracy=metrics.accuracy_score(prediction,test_y)
 print(f"SVM model accuracy is {format(accuracy)}")
 
 # Save to file in the current working directory
-pkl_filename = "iris_log_reg.pkl"
+pkl_filename = "iris_logistic_regression.pkl"
 with open(pkl_filename, 'wb') as file:
     pickle.dump(model, file)
 
