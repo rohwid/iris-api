@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
 
+import random
 import pickle
 import pandas as pd
 
@@ -20,13 +21,13 @@ train_y = train.Species
 test_X = test[["Sepal Length", "Sepal Width", "Petal length", "Petal Width"]]
 test_y = test.Species
 
-with open('iris_svm.pkl', 'rb') as file:
+with open('model/iris_svm.pkl', 'rb') as file:
     svm_pickle_model = pickle.load(file)
 
-with open('iris_logistic_regression.pkl', 'rb') as file:
+with open('model/iris_logistic_regression.pkl', 'rb') as file:
     lr_pickle_model = pickle.load(file)
 
-with open('iris_decission_tree.pkl', 'rb') as file:
+with open('model/iris_decission_tree.pkl', 'rb') as file:
     dt_pickle_model = pickle.load(file)
 
 @app.route('/testing',methods=['POST'])
@@ -60,9 +61,13 @@ def predict():
 
     if (select == 0):
         return jsonify(svm_predict.tolist())
-    elif (select == 1):
+    
+    if (select == 1):
         return jsonify(lr_predict.tolist())
-    elif (select == 2):
+    
+    if (select == 2):
         return jsonify(dt_predict.tolist())
 
-app.run(port=5000, debug=True)
+
+if __name__ == '__main__':
+    app.run(port=5000, debug=True)
