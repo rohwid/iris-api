@@ -30,7 +30,7 @@ with open('model/iris_logistic_regression.pkl', 'rb') as file:
 with open('model/iris_decission_tree.pkl', 'rb') as file:
     dt_pickle_model = pickle.load(file)
 
-@app.route('/testing',methods=['POST'])
+@app.route('/testing', methods=['POST'])
 def predict():
     request_data = request.get_json()
 
