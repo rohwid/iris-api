@@ -22,4 +22,5 @@ RUN rm -r docker_scripts
 
 ENV PATH="/opt/venv/bin:$PATH"
 
-CMD ["uwsgi", "--ini", "service.ini"]
+ENTRYPOINT [ "python" ]
+CMD [ "iris_server.py" ]
