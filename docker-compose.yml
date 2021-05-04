@@ -1,0 +1,44 @@
+version: '3.8'
+services:
+
+######################################################
+# DATABASE SERVICE
+######################################################
+
+    postgres:
+        image: iris-postgres:0.0.1
+        build: ./docker/postgres
+        restart: unless-stopped
+        container_name: postgres
+        ports:
+            - 30000:5432
+        environment:
+            - POSTGRES_PASSWORD=iris123
+        networks:
+            - iris-network
+
+######################################################
+# IRIS-SERVER
+######################################################
+
+    iris-server:
+        image: iris-server:0.0.1
+        build: ./docker/iris-server
+        restart: unless-stopped
+        container_name: iris-server
+        volumes:
+            - ./ml/iris/:/opt/ml/iris
+        ports:
+            - 30001:5000
+        depends_on: 
+            - postgres
+        networks: 
+            - iris-network
+
+######################################################
+# NETWORK
+######################################################
+
+networks:
+    iris-network:
+        name: iris-network
