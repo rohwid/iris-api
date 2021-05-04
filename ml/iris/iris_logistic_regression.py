@@ -44,4 +44,4 @@ predict_Y = pickle_model.predict(test_X)
 print(f"The prdiction result: {predict_Y}")
 
 # Save testing to CSV
-test_X.to_csv('data_testing/input_logistic_regression.csv', index=False)
+test_X.to_csv('../../data_testing/input_logistic_regression.csv', index=False)
