@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+from flask_sqlalchemy import SQLAlchemy
 from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
 
@@ -7,6 +8,21 @@ import pickle
 import pandas as pd
 
 app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://postgres:iris123@0.0.0.0:30000/iris_db'
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+db = SQLAlchemy(app)
+
+class Iris(db.Model):
+    __tablename__ = 'class_result'
+    id = db.Column(db.Integer, primary_key=True)
+    method = db.Column(db.String(50), nullable=False)
+    accuracy = db.Column(db.Float, nullable=False)
+
+    def __init__(self, method, accuracy):
+        self.method = method
+        self.accuracy = accuracy
+
 
 dataset = load_iris()
 data = pd.DataFrame(dataset['data'], columns = ["Petal length","Petal Width","Sepal Length","Sepal Width"])
@@ -29,6 +45,7 @@ with open('model/iris_logistic_regression.pkl', 'rb') as file:
 
 with open('model/iris_decission_tree.pkl', 'rb') as file:
     dt_pickle_model = pickle.load(file)
+
 
 @app.route('/testing', methods=['POST'])
 def predict():
@@ -59,15 +76,32 @@ def predict():
     else:
         select = result[0]
 
+    accuracy = 0
+    method = "NaN"
+
     if (select == 0):
-        return jsonify(svm_predict.tolist())
+        method = "SVM"
+        accuracy = svm_score
+        
+        return jsonify({'method': method, 'accuracy': accuracy})
     
     if (select == 1):
-        return jsonify(lr_predict.tolist())
+        method = "Logistic Regression"
+        accuracy = lr_score
+        
+        return jsonify({'method': method, 'accuracy': accuracy})
     
     if (select == 2):
-        return jsonify(dt_predict.tolist())
+        method = "Decision Tree"
+        accuracy = dt_score
+        
+        return jsonify({'method': method, 'accuracy': accuracy})
+    
+    entry = Iris(method, accuracy)
+    db.session.add(entry)
+    db.session.commit()
 
 
 if __name__ == '__main__':
+    db.create_all()
     app.run(host = '0.0.0.0', debug = True, port = '5000')
