@@ -10,7 +10,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     GRANT ALL PRIVILEGES ON DATABASE iris_db TO iris;
     \c iris_db
     CREATE TABLE CLASS_RESULT(
-        ID INT PRIMARY KEY NOT NULL,
+        ID SERIAL,
         METHOD VARCHAR (50) NOT NULL,
         ACCURACY NUMERIC NOT NULL
     );

@@ -1,28 +1,15 @@
 from flask import Flask, request, jsonify
-from flask_sqlalchemy import SQLAlchemy
 from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
 
-import random
+import os.path
+import datetime
+import json
 import pickle
 import pandas as pd
+import random
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://postgres:iris123@0.0.0.0:30000/iris_db'
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-
-db = SQLAlchemy(app)
-
-class Iris(db.Model):
-    __tablename__ = 'class_result'
-    id = db.Column(db.Integer, primary_key=True)
-    method = db.Column(db.String(50), nullable=False)
-    accuracy = db.Column(db.Float, nullable=False)
-
-    def __init__(self, method, accuracy):
-        self.method = method
-        self.accuracy = accuracy
-
 
 dataset = load_iris()
 data = pd.DataFrame(dataset['data'], columns = ["Petal length","Petal Width","Sepal Length","Sepal Width"])
@@ -46,6 +33,37 @@ with open('model/iris_logistic_regression.pkl', 'rb') as file:
 with open('model/iris_decission_tree.pkl', 'rb') as file:
     dt_pickle_model = pickle.load(file)
 
+def json_converter(json_data):
+    if isinstance(json_data, datetime.datetime):
+        return json_data.__str__()
+
+def write_json(input_data, flag):
+    if (flag == 0):
+        data = {'testing_result': [input_data]}
+        
+        # Serializing json 
+        json_object = json.dumps(data, indent = 4)
+        
+        # Writing to sample.json
+        with open("output/output.json", "w") as outfile:
+            outfile.write(json_object)
+    else:
+        # Serializing json 
+        json_object = json.dumps(input_data, indent = 4)
+        
+        # Writing to sample.json
+        with open("output/output.json", "w") as outfile:
+            outfile.write(json_object)
+
+def write_output(input_data):
+    if os.path.isfile('output/output.json'):    
+        with open('output/output.json') as json_file:
+            data = json.load(json_file)
+            data['testing_result'].append(input_data)
+            
+        write_json(data, 1)
+    else:
+        write_json(input_data, 0)
 
 @app.route('/testing', methods=['POST'])
 def predict():
@@ -75,33 +93,33 @@ def predict():
         select = random.choice(result)
     else:
         select = result[0]
-
-    accuracy = 0
-    method = "NaN"
-
+    
+    test_result = {
+        'timestamp': json_converter(datetime.datetime.now()),
+        'method': "NaN",
+        'accuracy': 0
+    }
+    
     if (select == 0):
-        method = "SVM"
-        accuracy = svm_score
+        test_result['method'] = "SVM"
+        test_result['accuracy'] = svm_score
+        write_output(test_result)
         
-        return jsonify({'method': method, 'accuracy': accuracy})
+        return jsonify(test_result)
     
     if (select == 1):
-        method = "Logistic Regression"
-        accuracy = lr_score
+        test_result['method'] = "Linear Logistic"
+        test_result['accuracy'] = lr_score
+        write_output(test_result)
         
-        return jsonify({'method': method, 'accuracy': accuracy})
+        return jsonify(test_result)
     
     if (select == 2):
-        method = "Decision Tree"
-        accuracy = dt_score
+        test_result['method'] = "Decision Tree"
+        test_result['accuracy'] = dt_score
+        write_output(test_result)
         
-        return jsonify({'method': method, 'accuracy': accuracy})
+        return jsonify(test_result)
     
-    entry = Iris(method, accuracy)
-    db.session.add(entry)
-    db.session.commit()
-
-
 if __name__ == '__main__':
-    db.create_all()
     app.run(host = '0.0.0.0', debug = True, port = '5000')
