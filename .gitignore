@@ -104,4 +104,4 @@ nccl_*
 .vscode/*
 
 # Custom
-*.csv
+data_testing/*.csv

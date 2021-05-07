@@ -33,6 +33,8 @@ with open('model/iris_logistic_regression.pkl', 'rb') as file:
 with open('model/iris_decission_tree.pkl', 'rb') as file:
     dt_pickle_model = pickle.load(file)
 
+output_file = '../output/output.json'
+
 def json_converter(json_data):
     if isinstance(json_data, datetime.datetime):
         return json_data.__str__()
@@ -45,19 +47,19 @@ def write_json(input_data, flag):
         json_object = json.dumps(data, indent = 4)
         
         # Writing to sample.json
-        with open("output/output.json", "w") as outfile:
+        with open(output_file, "w") as outfile:
             outfile.write(json_object)
     else:
         # Serializing json 
         json_object = json.dumps(input_data, indent = 4)
         
         # Writing to sample.json
-        with open("output/output.json", "w") as outfile:
+        with open(output_file, "w") as outfile:
             outfile.write(json_object)
 
 def write_output(input_data):
-    if os.path.isfile('output/output.json'):    
-        with open('output/output.json') as json_file:
+    if os.path.isfile(output_file):    
+        with open(output_file) as json_file:
             data = json.load(json_file)
             data['testing_result'].append(input_data)
             

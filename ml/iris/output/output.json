@@ -1,9 +1,0 @@
-{
-    "testing_result": [
-        {
-            "timestamp": "2021-05-06 23:30:35.816166",
-            "method": "Decision Tree",
-            "accuracy": 1.0
-        }
-    ]
-}
