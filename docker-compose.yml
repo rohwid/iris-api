@@ -38,6 +38,24 @@ services:
             - iris-network
 
 ######################################################
+# AIRFLOW
+######################################################
+    airflow:
+        build: ./docker/airflow
+        restart: unless-stopped
+        container_name: airflow
+        volumes:
+            - ./ml/airflow/airflow.cfg:/opt/ml/airflow/airflow.cfg
+            - ./ml/airflow/dags:/opt/ml/airflow/dags
+        ports:
+            - 8080:8080
+        depends_on:
+            - postgres
+            - iris-server
+        networks: 
+            - iris-network
+
+######################################################
 # NETWORK
 ######################################################
 
