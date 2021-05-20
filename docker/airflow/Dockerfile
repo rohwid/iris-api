@@ -1,11 +1,18 @@
-# VERSION 1.10.6
-# AUTHOR: Matthieu "Puckel_" Roisil
-# DESCRIPTION: Basic Airflow container
-# BUILD: docker build --rm -t puckel/docker-airflow .
-# SOURCE: https://github.com/puckel/docker-airflow
-
-FROM python:3.6-slim-buster
+FROM python:3.7-slim-buster as base
 LABEL maintainer="Rohman Widiyanto"
+
+# Using base 
+FROM base as builder 
+
+COPY ./scripts/install.sh ./
+RUN ./install.sh && python -m venv /opt/venv
+
+ENV PATH="/opt/venv/bin:$PATH"
+RUN pip install --upgrade pip
+
+FROM base
+
+COPY --from=builder /opt/venv /opt/venv
 
 # Never prompts the user for choices on installation/configuration of packages
 ENV DEBIAN_FRONTEND noninteractive
@@ -13,8 +20,11 @@ ENV TERM linux
 
 # Airflow
 ARG AIRFLOW_VERSION=2.0.2
-ARG AIRFLOW_USER_HOME=/opt/ml/airflow
+ARG AIRFLOW_USER_HOME=/usr/local/airflow
 ENV AIRFLOW_HOME=${AIRFLOW_USER_HOME}
+
+# Python
+ENV PATH="/opt/venv/bin:$PATH"
 
 # Define en_US.
 ENV LANGUAGE en_US.UTF-8
@@ -23,10 +33,10 @@ ENV LC_ALL en_US.UTF-8
 ENV LC_CTYPE en_US.UTF-8
 ENV LC_MESSAGES en_US.UTF-8
 
-COPY ./requirements.txt /requirements.txt
+COPY ./requirements.txt ./requirements.txt
 
-RUN set -ex \
-    && buildDeps=' \
+RUN set -ex && \
+    buildDeps=' \
         freetds-dev \
         libkrb5-dev \
         libsasl2-dev \
@@ -34,10 +44,10 @@ RUN set -ex \
         libffi-dev \
         libpq-dev \
         git \
-    ' \
-    && apt-get update -yqq \
-    && apt-get upgrade -yqq \
-    && apt-get install -yqq --no-install-recommends \
+    ' && \
+    apt-get update -yqq && \
+    apt-get upgrade -yqq && \
+    apt-get install -yqq --no-install-recommends \
         $buildDeps \
         python3-dev \
         wget \
@@ -50,19 +60,24 @@ RUN set -ex \
         zip \
         unzip \
         gcc \
-        vim \
+        vim \                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
         netcat \
-        locales \
-    && sed -i 's/^# en_US.UTF-8 UTF-8$/en_US.UTF-8 UTF-8/g' /etc/locale.gen \
-    && locale-gen \
-    && update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 \
-    && useradd -ms /bin/bash -d ${AIRFLOW_USER_HOME} airflow \
-    && pip install --upgrade "pip==21.1.1" \
-    && pip install apache-airflow[crypto,celery,postgres,mysql,ssh,docker,redis]==${AIRFLOW_VERSION} --constraint /requirements.txt \
-    && apt-get purge --auto-remove -yqq $buildDeps \
-    && apt-get autoremove -yqq --purge \
-    && apt-get clean \
-    && rm -rf \
+        locales && \
+    sed -i 's/^# en_US.UTF-8 UTF-8$/en_US.UTF-8 UTF-8/g' /etc/locale.gen && \
+    locale-gen && \
+    update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 && \
+    useradd -ms /bin/bash -d ${AIRFLOW_USER_HOME} airflow && \
+    pip install -U pip setuptools wheel && \
+    pip install pytest && \
+    pip install pytz && \
+    pip install pyOpenSSL && \
+    pip install ndg-httpsclient && \
+    pip install pyasn1 && \
+    pip install apache-airflow[crypto,celery,postgres,ssh]==${AIRFLOW_VERSION} --constraint ./requirements.txt && \
+    apt-get purge --auto-remove -yqq $buildDeps && \
+    apt-get autoremove -yqq --purge && \
+    apt-get clean && \
+    rm -rf \
         /var/lib/apt/lists/* \
         /tmp/* \
         /var/tmp/* \
@@ -70,18 +85,19 @@ RUN set -ex \
         /usr/share/doc \
         /usr/share/doc-base
 
+
+COPY scripts/entrypoint.sh /entrypoint.sh
+
+RUN chmod +x /entrypoint.sh
+
 RUN chown -R airflow: ${AIRFLOW_USER_HOME}
 
-WORKDIR ${AIRFLOW_USER_HOME}
-
-COPY scripts/entrypoint.sh ./entrypoint.sh
-
-RUN chmod +x ./entrypoint.sh
+EXPOSE 8080 5555 8793
 
 USER airflow
 
-RUN mkdir -p ${AIRFLOW_USER_HOME}/dags
+WORKDIR ${AIRFLOW_USER_HOME}
 
-EXPOSE 8080
+ENTRYPOINT ["/entrypoint.sh"]
 
-ENTRYPOINT ["./entrypoint.sh"]
+CMD ["webserver"]

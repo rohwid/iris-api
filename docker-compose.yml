@@ -41,18 +41,19 @@ services:
 # AIRFLOW
 ######################################################
     airflow:
+        image: iris-airflow:0.0.1
         build: ./docker/airflow
         restart: unless-stopped
         container_name: airflow
         volumes:
-            - ./ml/airflow/airflow.cfg:/opt/ml/airflow/airflow.cfg
-            - ./ml/airflow/dags:/opt/ml/airflow/dags
+            - ./ml/airflow/airflow.cfg:/usr/local/airflow/airflow.cfg
+            - ./ml/airflow/dags:/usr/local/airflow/dags
         ports:
             - 8080:8080
         depends_on:
             - postgres
             - iris-server
-        networks: 
+        networks:
             - iris-network
 
 ######################################################
