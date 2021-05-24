@@ -1,103 +1,23 @@
-FROM python:3.7-slim-buster as base
-LABEL maintainer="Rohman Widiyanto"
+FROM apache/airflow:2.0.0-python3.7
 
-# Using base 
-FROM base as builder 
+USER root
 
-COPY ./scripts/install.sh ./
-RUN ./install.sh && python -m venv /opt/venv
+# INSTALL TOOLS
+RUN apt-get update \
+    && apt-get -y install libaio-dev \
+    && apt-get install postgresql-client
 
-ENV PATH="/opt/venv/bin:$PATH"
-RUN pip install --upgrade pip
-
-FROM base
-
-COPY --from=builder /opt/venv /opt/venv
-
-# Never prompts the user for choices on installation/configuration of packages
-ENV DEBIAN_FRONTEND noninteractive
-ENV TERM linux
-
-# Airflow
-ARG AIRFLOW_VERSION=2.0.2
-ARG AIRFLOW_USER_HOME=/usr/local/airflow
-ENV AIRFLOW_HOME=${AIRFLOW_USER_HOME}
-
-# Python
-ENV PATH="/opt/venv/bin:$PATH"
-
-# Define en_US.
-ENV LANGUAGE en_US.UTF-8
-ENV LANG en_US.UTF-8
-ENV LC_ALL en_US.UTF-8
-ENV LC_CTYPE en_US.UTF-8
-ENV LC_MESSAGES en_US.UTF-8
-
-COPY ./requirements.txt ./requirements.txt
-
-RUN set -ex && \
-    buildDeps=' \
-        freetds-dev \
-        libkrb5-dev \
-        libsasl2-dev \
-        libssl-dev \
-        libffi-dev \
-        libpq-dev \
-        git \
-    ' && \
-    apt-get update -yqq && \
-    apt-get upgrade -yqq && \
-    apt-get install -yqq --no-install-recommends \
-        $buildDeps \
-        python3-dev \
-        wget \
-        freetds-bin \
-        build-essential \
-        default-libmysqlclient-dev \
-        apt-utils \
-        curl \
-        rsync \
-        zip \
-        unzip \
-        gcc \
-        vim \                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
-        netcat \
-        locales && \
-    sed -i 's/^# en_US.UTF-8 UTF-8$/en_US.UTF-8 UTF-8/g' /etc/locale.gen && \
-    locale-gen && \
-    update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 && \
-    useradd -ms /bin/bash -d ${AIRFLOW_USER_HOME} airflow && \
-    pip install -U pip setuptools wheel && \
-    pip install pytest && \
-    pip install pytz && \
-    pip install pyOpenSSL && \
-    pip install ndg-httpsclient && \
-    pip install pyasn1 && \
-    pip install apache-airflow[crypto,celery,postgres,ssh]==${AIRFLOW_VERSION} --constraint ./requirements.txt && \
-    apt-get purge --auto-remove -yqq $buildDeps && \
-    apt-get autoremove -yqq --purge && \
-    apt-get clean && \
-    rm -rf \
-        /var/lib/apt/lists/* \
-        /tmp/* \
-        /var/tmp/* \
-        /usr/share/man \
-        /usr/share/doc \
-        /usr/share/doc-base
-
-
-COPY scripts/entrypoint.sh /entrypoint.sh
-
-RUN chmod +x /entrypoint.sh
-
-RUN chown -R airflow: ${AIRFLOW_USER_HOME}
-
-EXPOSE 8080 5555 8793
+RUN mkdir extra
 
 USER airflow
 
-WORKDIR ${AIRFLOW_USER_HOME}
+# COPY SQL SCRIPT
+COPY scripts/check_init.sql ./extra/check_init.sql
+COPY scripts/set_init.sql ./extra/set_init.sql
 
-ENTRYPOINT ["/entrypoint.sh"]
+# ENTRYPOINT SCRIPT
+COPY scripts/init.sh ./init.sh
 
-CMD ["webserver"]
+EXPOSE 8080
+
+ENTRYPOINT ["./init.sh"]

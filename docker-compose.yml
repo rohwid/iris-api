@@ -5,15 +5,25 @@ services:
 # DATABASE SERVICE
 ######################################################
 
-    postgres:
-        image: iris-postgres:0.0.1
-        build: ./docker/postgres
-        restart: unless-stopped
-        container_name: postgres
+    airflow-postgres:
+        image: airflow-postgres:13.2-alpine
+        build: ./docker/airflow-postgres
+        container_name: airflow-postgres
         ports:
             - 30000:5432
-        environment:
-            - POSTGRES_PASSWORD=iris123
+        env_file:
+            - ./env_file/postgres/airflow_postgres.env
+        networks:
+            - iris-network
+    
+    iris-postgres:
+        image: iris-postgres:13.2-alpine
+        build: ./docker/iris-postgres
+        container_name: iris-postgres
+        ports:
+            - 30001:5432
+        env_file:
+            - ./env_file/postgres/iris_postgres.env
         networks:
             - iris-network
 
@@ -24,35 +34,35 @@ services:
     iris-server:
         image: iris-server:0.0.1
         build: ./docker/iris-server
-        restart: unless-stopped
         container_name: iris-server
+        ports:
+            - 30002:5000
         volumes:
             - ./ml/iris/:/opt/ml/iris
             - ./ml/datasets/:/opt/ml/datasets
             - ./ml/output/:/opt/ml/output
-        ports:
-            - 30001:5000
-        depends_on: 
-            - postgres
+        depends_on:
+            - iris-postgres
         networks: 
             - iris-network
 
 ######################################################
 # AIRFLOW
 ######################################################
-    airflow:
-        image: iris-airflow:0.0.1
+
+    iris-airflow:
+        image: iris-airflow:2.0.0-python3.7
         build: ./docker/airflow
-        restart: unless-stopped
-        container_name: airflow
-        volumes:
-            - ./ml/airflow/airflow.cfg:/usr/local/airflow/airflow.cfg
-            - ./ml/airflow/dags:/usr/local/airflow/dags
+        container_name: iris-airflow
         ports:
             - 8080:8080
+        volumes:
+            - ./ml/airflow/dags:/opt/airflow/dags
+        env_file:
+            - ./env_file/airflow/airflow.env
+            - ./env_file/airflow/airflow_db.env
         depends_on:
-            - postgres
-            - iris-server
+            - airflow-postgres
         networks:
             - iris-network
 
