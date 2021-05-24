@@ -5,75 +5,75 @@ services:
 # DATABASE SERVICE
 ######################################################
 
-    airflow-postgres:
-        image: postgres:13.2-alpine
-        container_name: airflow-postgres
-        ports:
-            - 30000:5432
-        volumes: 
-            - ./db/airflow:/var/lib/postgresql/data
-            - ./docker/postgres/airflow:/docker-entrypoint-initdb.d/
-        env_file:
-            - ./env_file/postgres/airflow_postgres.env
-        networks:
-            - iris-network
-    
-    iris-postgres:
-        image: postgres:13.2-alpine
-        container_name: iris-postgres
-        ports:
-            - 30001:5432
-        volumes: 
-            - ./db/iris:/var/lib/postgresql/data
-            - ./docker/postgres/iris-server:/docker-entrypoint-initdb.d/
-        env_file:
-            - ./env_file/postgres/iris_postgres.env
-        networks:
-            - iris-network
+  airflow-postgres:
+    image: postgres:13.2-alpine
+    container_name: airflow-postgres
+    ports:
+      - 30000:5432
+    volumes: 
+      - ./db/airflow:/var/lib/postgresql/data
+      - ./docker/postgres/airflow:/docker-entrypoint-initdb.d/
+    env_file:
+      - ./env_file/postgres/airflow_postgres.env
+    networks:
+      - iris-network
+  
+  iris-postgres:
+    image: postgres:13.2-alpine
+    container_name: iris-postgres
+    ports:
+      - 30001:5432
+    volumes: 
+      - ./db/iris:/var/lib/postgresql/data
+      - ./docker/postgres/iris-server:/docker-entrypoint-initdb.d/
+    env_file:
+      - ./env_file/postgres/iris_postgres.env
+    networks:
+      - iris-network
 
 ######################################################
 # IRIS-SERVER
 ######################################################
 
-    iris-server:
-        image: iris-server:0.0.1
-        build: ./docker/iris-server
-        container_name: iris-server
-        ports:
-            - 30002:5000
-        volumes:
-            - ./ml/iris/:/opt/ml/iris
-            - ./ml/datasets/:/opt/ml/datasets
-            - ./ml/output/:/opt/ml/output
-        depends_on:
-            - iris-postgres
-        networks: 
-            - iris-network
+  iris-server:
+    image: iris-server:0.0.1
+    build: ./docker/iris-server
+    container_name: iris-server
+    ports:
+      - 30002:5000
+    volumes:
+      - ./ml/iris/:/opt/ml/iris
+      - ./ml/datasets/:/opt/ml/datasets
+      - ./ml/output/:/opt/ml/output
+    depends_on:
+      - iris-postgres
+    networks: 
+      - iris-network
 
 ######################################################
 # AIRFLOW
 ######################################################
 
-    iris-airflow:
-        image: iris-airflow:2.0.0-python3.7
-        build: ./docker/airflow
-        container_name: iris-airflow
-        ports:
-            - 30003:8080
-        volumes:
-            - ./ml/dags:/opt/airflow/dags
-        env_file:
-            - ./env_file/airflow/airflow.env
-            - ./env_file/airflow/airflow_db.env
-        depends_on:
-            - airflow-postgres
-        networks:
-            - iris-network
+  iris-airflow:
+    image: iris-airflow:2.0.0-python3.7
+    build: ./docker/airflow
+    container_name: iris-airflow
+    ports:
+      - 30003:8080
+    volumes:
+      - ./ml/dags:/opt/airflow/dags
+    env_file:
+      - ./env_file/airflow/airflow.env
+      - ./env_file/airflow/airflow_db.env
+    depends_on:
+      - airflow-postgres
+    networks:
+      - iris-network
 
 ######################################################
 # NETWORK
 ######################################################
 
 networks:
-    iris-network:
-        name: iris-network
+  iris-network:
+    name: iris-network
