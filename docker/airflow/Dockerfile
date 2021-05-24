@@ -9,15 +9,18 @@ RUN apt-get update \
 
 RUN mkdir extra
 
+# ENTRYPOINT SCRIPT
+COPY scripts/start_airflow.sh ./start_airflow.sh
+
+RUN chmod +x ./start_airflow.sh \
+    && chown airflow: ./start_airflow.sh
+
 USER airflow
 
 # COPY SQL SCRIPT
 COPY scripts/check_init.sql ./extra/check_init.sql
 COPY scripts/set_init.sql ./extra/set_init.sql
 
-# ENTRYPOINT SCRIPT
-COPY scripts/init.sh ./init.sh
-
 EXPOSE 8080
 
-ENTRYPOINT ["./init.sh"]
+ENTRYPOINT ["./start_airflow.sh"]
