@@ -11,6 +11,7 @@ services:
         ports:
             - 30000:5432
         volumes: 
+            - ./db/airflow:/var/lib/postgresql/data
             - ./docker/postgres/airflow:/docker-entrypoint-initdb.d/
         env_file:
             - ./env_file/postgres/airflow_postgres.env
@@ -23,6 +24,7 @@ services:
         ports:
             - 30001:5432
         volumes: 
+            - ./db/iris:/var/lib/postgresql/data
             - ./docker/postgres/iris-server:/docker-entrypoint-initdb.d/
         env_file:
             - ./env_file/postgres/iris_postgres.env
@@ -59,7 +61,7 @@ services:
         ports:
             - 30003:8080
         volumes:
-            - ./ml/airflow/dags:/opt/airflow/dags
+            - ./ml/dags:/opt/airflow/dags
         env_file:
             - ./env_file/airflow/airflow.env
             - ./env_file/airflow/airflow_db.env
