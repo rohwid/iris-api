@@ -24,3 +24,4 @@ COPY scripts/set_init.sql ./extra/set_init.sql
 EXPOSE 8080
 
 ENTRYPOINT ["./start_airflow.sh"]
+

@@ -40,3 +40,4 @@ print(f"The prdiction result: {predict_Y}")
 
 # Save testing to CSV
 test_X.to_csv('../../data_testing/input_svm.csv', index=False)
+

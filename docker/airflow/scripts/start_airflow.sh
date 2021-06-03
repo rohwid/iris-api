@@ -26,3 +26,4 @@ airflow scheduler &
 
 # Run webserver
 exec airflow webserver
+

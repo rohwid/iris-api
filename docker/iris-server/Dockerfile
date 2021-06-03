@@ -23,3 +23,4 @@ EXPOSE 5000
 
 ENTRYPOINT [ "python" ]
 CMD [ "iris_server.py" ]
+
