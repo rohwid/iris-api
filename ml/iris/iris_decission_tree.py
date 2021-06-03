@@ -20,7 +20,7 @@ model=DecisionTreeClassifier()
 model.fit(train_X,train_y)
 prediction=model.predict(test_X)
 accuracy=metrics.accuracy_score(prediction,test_y)
-print(f"SVM model accuracy is {format(accuracy)}")
+print(f"Decission tree model accuracy is {format(accuracy)}")
 
 # Save to file in the current working directory
 pkl_filename = "model/iris_decission_tree.pkl"
